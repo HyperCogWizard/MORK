@@ -1,6 +1,26 @@
 pub mod space;
 mod json_parser;
 pub mod prefix;
+mod stubs;
+
+// New deliverable modules
+pub mod triemap_derivation;
+pub mod expr_query;
+pub mod jsonpath_engine;
+pub mod pattern_matching;
+
+// Integration tests for deliverable validation
+#[cfg(test)]
+mod integration_tests;
+
+// Re-export key functionality
+pub use triemap_derivation::{TrieMap, BytesTrieMap};
+pub use expr_query::{ExprQueryEngine, ExprPattern, ExprStructure};
+pub use jsonpath_engine::JsonPathEngine;
+pub use pattern_matching::UnificationEngine;
+
+// Re-export stubs for missing dependencies
+pub use stubs::*;
 
 #[cfg(test)]
 mod tests {

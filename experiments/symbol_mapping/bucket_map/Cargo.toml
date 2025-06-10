@@ -4,7 +4,7 @@ version = "0.1.0"
 edition.workspace = true
 
 [dependencies]
-pathmap = {workspace = true}
+# pathmap = {workspace = true}
 mork-frontend = {workspace = true}
 mork-bytestring = {workspace = true}
 naive_map = { path = "../naive_map" }

@@ -1,7 +1,7 @@
 use std::convert::AsRef;
 use std::ptr::{null, slice_from_raw_parts};
-use mork_bytestring::{byte_item, Expr, ExprZipper, ExtractFailure, item_byte, parse, compute_length, Tag};
-use mork_bytestring::Tag::{Arity, SymbolSize};
+use crate::stubs::{byte_item, Expr, item_byte, Tag};
+use crate::stubs::Tag::{Arity, SymbolSize};
 
 
 pub(crate) enum PrefixComparison {
