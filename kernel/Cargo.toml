@@ -10,10 +10,10 @@ edition = "2021"
 [dependencies]
 log = { workspace=true }
 env_logger = { workspace=true }
-pathmap = { workspace = true, features = [] }
-mork-frontend = { workspace=true }
-mork-bytestring = { workspace=true }
-bucket_map = { workspace = true }
+# pathmap = { workspace = true, features = [] }
+# mork-frontend = { workspace=true }
+# mork-bytestring = { workspace=true }
+# bucket_map = { workspace = true }
 memmap2 = "0.9.5"
 #neo4rs = { version = "0.9.0-rc.5" , features = ["unstable-bolt-protocol-impl-v2"]}
 #tokio = "1.43.0"

@@ -1,15 +1,18 @@
 [workspace]
 resolver = "2"
 members = [
-    "benchmarks/aunt-kg/",
-    "benchmarks/fizzbuzz/",
-    "benchmarks/logic-query/",
-    "benchmarks/oeis/",
-    "benchmarks/simple_partest/",
-    "benchmarks/parmap/",
-    "experiments/expr/bytestring/",
-    "experiments/expr/dyck/", "experiments/symbol_mapping/bucket_map", "experiments/symbol_mapping/bucket_map_dependant_tests", "experiments/symbol_mapping/naive_map",
-    "frontend/",
+    # "benchmarks/aunt-kg/",
+    # "benchmarks/fizzbuzz/",
+    # "benchmarks/logic-query/",
+    # "benchmarks/oeis/",
+    # "benchmarks/simple_partest/",
+    # "benchmarks/parmap/",
+    # "experiments/expr/bytestring/",
+    # "experiments/expr/dyck/", 
+    # "experiments/symbol_mapping/bucket_map", 
+    # "experiments/symbol_mapping/bucket_map_dependant_tests", 
+    # "experiments/symbol_mapping/naive_map",
+    # "frontend/",
     "kernel/"
 ]
 
@@ -30,6 +33,6 @@ bucket_map = {features = ["debug_api"], path = "./experiments/symbol_mapping/buc
 freeze = { version="0.1.1", git="https://github.com/luketpeterson/Freeze.git" } #Fixes build on MacOS
 gxhash = {version="3.4.1", git="https://github.com/luketpeterson/gxhash/"} # for dag_serialization
 
-[workspace.dependencies.pathmap]
-path = "../PathMap"
-features = ["jemalloc", "arena_compact"]
+# [workspace.dependencies.pathmap]
+# path = "../PathMap"
+# features = ["jemalloc", "arena_compact"]

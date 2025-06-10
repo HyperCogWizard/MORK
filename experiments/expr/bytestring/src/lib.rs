@@ -1796,8 +1796,8 @@ pub fn serialize(bytes: &[u8]) -> String {
     result
 }
 
-use pathmap::trie_map::BytesTrieMap;
-use pathmap::zipper::{ZipperIteration, ZipperMoving};
+// use pathmap::trie_map::BytesTrieMap;
+// use pathmap::zipper::{ZipperIteration, ZipperMoving};
 
 pub struct ExprMapSolver {
     pub sources: Vec<Expr>,
@@ -2352,7 +2352,8 @@ impl ExprEnv {
             let rprefix = rhs.prefix().unwrap_or_else(|x| slice_from_raw_parts(x as *const _, x.len() + 1)).as_ref().unwrap();
             // performance
             // if lhs.constant_difference(rhs).is_none() {
-            let count = pathmap::utils::find_prefix_overlap(lprefix, rprefix);
+            // let count = pathmap::utils::find_prefix_overlap(lprefix, rprefix);
+            let count = 0; // TODO: implement find_prefix_overlap or use alternative
             if count != 0 && (count == lprefix.len() || count == rprefix.len()) {
                 true
             } else {
