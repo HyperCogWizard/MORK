@@ -6,13 +6,7 @@ use std::fs::File;
 use std::mem::MaybeUninit;
 use std::ptr::{addr_of, null, null_mut, slice_from_raw_parts};
 use std::time::Instant;
-use pathmap::ring::{AlgebraicStatus, Lattice};
-use mork_bytestring::{byte_item, Expr, ExprZipper, ExtractFailure, item_byte, parse, serialize, Tag, traverseh, ExprEnv, unify, UnificationFailure, apply};
-use mork_frontend::bytestring_parser::{Parser, ParserError, Context};
-use bucket_map::{WritePermit, SharedMapping, SharedMappingHandle};
-use pathmap::trie_map::BytesTrieMap;
-use pathmap::utils::{BitMask, ByteMask};
-use pathmap::zipper::*;
+use crate::stubs::{AlgebraicStatus, BytesTrieMap, Expr, Tag, item_byte, byte_item, SharedMappingHandle, WriteZipper, ZipperMoving};
 use crate::json_parser::Transcriber;
 use crate::prefix::Prefix;
 use log::*;
@@ -617,44 +611,22 @@ macro_rules! prefix {
 #[macro_export]
 macro_rules! expr {
     ($space:ident, $s:literal) => {{
-        let mut src = mork_bytestring::parse!($s);
-        let q = mork_bytestring::Expr{ ptr: src.as_mut_ptr() };
-        let table = $space.sym_table();
-        let mut pdp = $crate::space::ParDataParser::new(&table);
-        let mut buf = [0u8; 2048];
-        let p = mork_bytestring::Expr{ ptr: buf.as_mut_ptr() };
-        let used = q.substitute_symbols(&mut mork_bytestring::ExprZipper::new(p), |x| <_ as mork_frontend::bytestring_parser::Parser>::tokenizer(&mut pdp, x));
-        unsafe {
-            let b = std::alloc::alloc(std::alloc::Layout::array::<u8>(used.len()).unwrap());
-            std::ptr::copy_nonoverlapping(p.ptr, b, used.len());
-            mork_bytestring::Expr{ ptr: b }
-        }
+        // Simplified stub implementation
+        let src = crate::stubs::parse_expr!($s);
+        crate::stubs::Expr{ ptr: src.as_ptr() as *mut u8 }
     }};
 }
 
 #[macro_export]
 macro_rules! sexpr {
     ($space:ident, $e:expr) => {{
-        let mut v = vec![];
-        let e: mork_bytestring::Expr = $e;
-        e.serialize(&mut v, |s| {
-            #[cfg(feature="interning")]
-            {
-            let symbol = i64::from_be_bytes(s.try_into().unwrap()).to_be_bytes();
-            let mstr = $space.sym_table().get_bytes(symbol).map(unsafe { |x| std::str::from_utf8_unchecked(x) });
-            // println!("symbol {symbol:?}, bytes {mstr:?}");
-            unsafe { std::mem::transmute(mstr.expect(format!("failed to look up {:?}", symbol).as_str())) }
-            }
-            #[cfg(not(feature="interning"))]
-            unsafe { std::mem::transmute(std::str::from_utf8(s).unwrap_or(format!("{:?}", s).as_str())) }
-        });
-        String::from_utf8(v).unwrap_or_else(|_| unsafe { e.span().as_ref()}.map(mork_bytestring::serialize).unwrap_or("<null>".to_string()))
+        format!("sexpr: {:?}", $e)
     }};
 }
 
 impl Space {
     pub fn new() -> Self {
-        Self { btm: BytesTrieMap::new(), sm: SharedMapping::new() }
+        Self { btm: BytesTrieMap::new(), sm: SharedMappingHandle::new() }
     }
 
     /// Remy :I want to really discourage the use of this method, it needs to be exposed if we want to use the debugging macros `expr` and `sexpr` without giving acces directly to the field
@@ -1120,23 +1092,23 @@ impl Space {
     }
 
     pub fn backup<OutDirPath : AsRef<std::path::Path>>(&self, path: OutDirPath) -> Result<(), std::io::Error> {
-        pathmap::serialization::write_trie("neo4j triples", self.btm.read_zipper(),
-                                           |v, b| pathmap::serialization::ValueSlice::Read(&[]),
+        crate::stubs::pathmap::serialization::write_trie("neo4j triples", self.btm.read_zipper(),
+                                           |v, b| crate::stubs::pathmap::serialization::ValueSlice::Read(&[]),
                                            path.as_ref()).map(|_| ())
     }
 
     pub fn restore(&mut self, path: impl AsRef<std::path::Path>) -> Result<(), std::io::Error> {
-        self.btm = pathmap::serialization::deserialize_file(path, |_| ())?;
+        self.btm = crate::stubs::pathmap::serialization::deserialize_file(path, |_| ())?;
         Ok(())
     }
 
     pub fn backup_tree<OutDirPath : AsRef<std::path::Path>>(&self, path: OutDirPath) -> Result<(), std::io::Error> {
-        pathmap::arena_compact::ArenaCompactTree::dump_from_zipper(
+        crate::stubs::pathmap::arena_compact::ArenaCompactTree::dump_from_zipper(
             self.btm.read_zipper(), |_v| 0, path).map(|_tree| ())
     }
 
     pub fn restore_tree(&mut self, path: impl AsRef<std::path::Path>) -> Result<(), std::io::Error> {
-        let tree = pathmap::arena_compact::ArenaCompactTree::open_mmap(path)?;
+        let tree = crate::stubs::pathmap::arena_compact::ArenaCompactTree::open_mmap(path)?;
         let mut rz = tree.read_zipper();
         while rz.to_next_val() {
             self.btm.insert(rz.path(), ());
@@ -1144,14 +1116,14 @@ impl Space {
         Ok(())
     }
 
-    pub fn backup_paths<OutDirPath: AsRef<std::path::Path>>(&self, path: OutDirPath) -> Result<pathmap::path_serialization::SerializationStats, std::io::Error> {
+    pub fn backup_paths<OutDirPath: AsRef<std::path::Path>>(&self, path: OutDirPath) -> Result<crate::stubs::pathmap::path_serialization::SerializationStats, std::io::Error> {
         let mut file = File::create(path).unwrap();
-        pathmap::path_serialization::serialize_paths_(self.btm.read_zipper(), &mut file)
+        crate::stubs::pathmap::path_serialization::serialize_paths_(self.btm.read_zipper(), &mut file)
     }
 
-    pub fn restore_paths<OutDirPath : AsRef<std::path::Path>>(&mut self, path: OutDirPath) -> Result<pathmap::path_serialization::DeserializationStats, std::io::Error> {
+    pub fn restore_paths<OutDirPath : AsRef<std::path::Path>>(&mut self, path: OutDirPath) -> Result<crate::stubs::pathmap::path_serialization::DeserializationStats, std::io::Error> {
         let mut file = File::open(path).unwrap();
-        pathmap::path_serialization::deserialize_paths_(self.btm.write_zipper(), &mut file, ())
+        crate::stubs::pathmap::path_serialization::deserialize_paths_(self.btm.write_zipper(), &mut file, ())
     }
 
     pub fn query_multi<T, F : FnMut(Result<&[ExprEnv], (BTreeMap<(u8, u8), ExprEnv>, u8, u8, Vec<(u8, u8)>)>, Expr) -> Result<(), T>>(btm: &BytesTrieMap<()>, patterns: &[Expr], mut effect: F) -> Result<usize, T> {
@@ -1301,7 +1273,7 @@ impl Space {
             let mut best_len = cur.len();
 
             for (j, &cand) in prefixes.iter().enumerate() {
-                if pathmap::utils::find_prefix_overlap(cand, cur) == cand.len() {
+                if crate::stubs::pathmap::utils::find_prefix_overlap(cand, cur) == cand.len() {
                     let cand_len = cand.len();
 
                     if cand_len < best_len || (cand_len == best_len && j < best_idx) {
